@@ -1,0 +1,18 @@
+{
+    "name": "bacnet-stack",
+    "version": "1.0.0",
+    "build": {
+        "flags": [
+            "-DBACDL_MSTP=1",
+            "-DBACAPP_ALL",
+            "-DMAX_APDU=480",
+            "-DBIG_ENDIAN=0",
+            "-DMAX_TSM_TRANSACTIONS=2",
+            "-DMAX_CHARACTER_STRING_BYTES=64",
+            "-DMAX_OCTET_STRING_BYTES=64",
+            "-DMAX_COV_SUBCRIPTIONS=4",
+            "-DMAX_ADDRESS_CACHE=4",
+            "-DMAX_BINARY_INPUTS=2"
+        ]
+    }
+}
