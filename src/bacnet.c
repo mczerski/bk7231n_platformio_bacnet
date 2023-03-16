@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 /* hardware layer includes */
-#include "hardware.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "dlmstp.h"

@@ -24,10 +24,18 @@
 #ifndef DLMSTP_H
 #define DLMSTP_H
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 void dlmstp_set_mac_address(uint8_t mac_address);
 void dlmstp_set_max_master(uint8_t max_master);
 bool dlmstp_init(char *ifname);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif

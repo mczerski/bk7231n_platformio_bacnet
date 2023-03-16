@@ -21,8 +21,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *********************************************************************/
-#include <stdint.h>
-#include "hardware.h"
+#include "Arduino.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
@@ -31,6 +30,11 @@ static struct mstimer Off_Delay_Timer_Tx;
 static bool Rx_State;
 static bool Tx_State;
 static bool LD3_State;
+static constexpr int LED_TX = 12;
+static constexpr int LED_RX = 13;
+static constexpr int LED_D3 = 17;
+static constexpr int LED_D4 = 3;
+static constexpr int IN1 = 15;
 
 /*************************************************************************
  * Description: Activate the LED
@@ -39,7 +43,7 @@ static bool LD3_State;
  **************************************************************************/
 void led_tx_on(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_SET);
+    digitalWrite(LED_TX, LOW);
     mstimer_set(&Off_Delay_Timer_Tx, 0);
     Tx_State = true;
 }
@@ -51,7 +55,7 @@ void led_tx_on(void)
  **************************************************************************/
 void led_rx_on(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_SET);
+    digitalWrite(LED_RX, LOW);
     mstimer_set(&Off_Delay_Timer_Rx, 0);
     Rx_State = true;
 }
@@ -63,7 +67,7 @@ void led_rx_on(void)
  **************************************************************************/
 void led_tx_off(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_RESET);
+    digitalWrite(LED_TX, HIGH);
     mstimer_set(&Off_Delay_Timer_Tx, 0);
     Tx_State = false;
 }
@@ -75,7 +79,7 @@ void led_tx_off(void)
  **************************************************************************/
 void led_rx_off(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_RESET);
+    digitalWrite(LED_RX, HIGH);
     mstimer_set(&Off_Delay_Timer_Rx, 0);
     Rx_State = false;
 }
@@ -194,7 +198,7 @@ void led_task(void)
  **************************************************************************/
 void led_ld4_on(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_SET);
+    digitalWrite(LED_D4, LOW);
 }
 
 /*************************************************************************
@@ -204,7 +208,7 @@ void led_ld4_on(void)
  **************************************************************************/
 void led_ld4_off(void)
 {
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_RESET);
+    digitalWrite(LED_D4, HIGH);
 }
 
 /*************************************************************************
@@ -214,7 +218,7 @@ void led_ld4_off(void)
  **************************************************************************/
 void led_ld3_on(void)
 {
-    //GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+    digitalWrite(LED_D3, LOW);
     LD3_State = true;
 }
 
@@ -225,7 +229,7 @@ void led_ld3_on(void)
  **************************************************************************/
 void led_ld3_off(void)
 {
-    //GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+    digitalWrite(LED_D3, HIGH);
     LD3_State = false;
 }
 
@@ -260,7 +264,8 @@ void led_ld3_toggle(void)
  *************************************************************************/
 bool led_in1_state(void)
 {
-    return false; //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12);
+    digitalRead(IN1);
+    return gpio_input(GPIO23);
 }
 
 /*************************************************************************
@@ -270,37 +275,11 @@ bool led_in1_state(void)
  *************************************************************************/
 void led_init(void)
 {
-//    GPIO_InitTypeDef GPIO_InitStructure;
-//
-//    GPIO_StructInit(&GPIO_InitStructure);
-//    /* Configure the Receive LED on MS/TP board */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//    GPIO_Init(GPIOB, &GPIO_InitStructure);
-//    /* Configure the Transmit LED on MS/TP board */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//    GPIO_Init(GPIOB, &GPIO_InitStructure);
-//    /* Configure the LD4 on Discovery board */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//    GPIO_Init(GPIOB, &GPIO_InitStructure);
-//    /* Configure the LD3 on Discovery board */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//    GPIO_Init(GPIOC, &GPIO_InitStructure);
-//    /* Configure the IN1 on Discovery board */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-//    GPIO_Init(GPIOB, &GPIO_InitStructure);
-//    /* Enable the GPIO_LED Clock */
-//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    pinMode(LED_TX, OUTPUT);
+    pinMode(LED_RX, OUTPUT);
+    pinMode(LED_D4, OUTPUT);
+    pinMode(LED_D3, OUTPUT);
+    pinMode(IN1, INPUT);
 
     led_tx_on();
     led_rx_on();

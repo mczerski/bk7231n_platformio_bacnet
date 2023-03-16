@@ -27,7 +27,8 @@
  *************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
-#include "hardware.h"
+#include <rtos_pub.h>
+#include <sys_rtos.h>
 #include "bacnet/basic/sys/mstimer.h"
 
 /* counter for the various timers */
@@ -36,13 +37,13 @@ static volatile unsigned long Millisecond_Counter;
 /**
  * Handles the interrupt from the timer
  */
-//void SysTick_Handler(void)
-//{
-//    /* increment the tick count */
-//    Millisecond_Counter++;
-//    /* run any callbacks */
-//    mstimer_callback_handler();
-//}
+void vApplicationTickHook()
+{
+    /* increment the tick count */
+    Millisecond_Counter += portTICK_PERIOD_MS;
+    /* run any callbacks */
+    mstimer_callback_handler();
+}
 
 /**
  * Returns the continuous milliseconds count, which rolls over
@@ -59,11 +60,4 @@ unsigned long mstimer_now(void)
  */
 void mstimer_init(void)
 {
-    /* Setup SysTick Timer for 1ms interrupts  */
-    //if (SysTick_Config(SystemCoreClock / 1000)) {
-    //    while (1) {
-    //        /* config error? return  1 = failed, 0 = successful */
-    //    }
-    //}
-    //NVIC_EnableIRQ(SysTick_IRQn);
 }

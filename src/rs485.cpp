@@ -24,19 +24,11 @@
  * Module Description:
  * Handle the configuration and operation of the RS485 bus.
  **************************************************************************/
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include "hardware.h"
+#include "Arduino.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/bits.h"
-#include "bacnet/basic/sys/fifo.h"
 #include "led.h"
 #include "rs485.h"
 
-/* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[512];
-static FIFO_BUFFER Receive_Buffer;
 /* amount of silence on the wire */
 static struct mstimer Silence_Timer;
 /* baud rate */
@@ -110,28 +102,6 @@ bool rs485_receive_error(void)
     return false;
 }
 
-/*********************************************************************/ /**
-                                                                         * @brief
-                                                                         *USARTx
-                                                                         *interrupt
-                                                                         *handler
-                                                                         *sub-routine
-                                                                         * @param[in]
-                                                                         *None
-                                                                         * @return
-                                                                         *None
-                                                                         **********************************************************************/
-//void USART2_IRQHandler(void)
-//{
-//    uint8_t data_byte;
-//
-//    if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
-//        /* Read one byte from the receive data register */
-//        data_byte = USART_ReceiveData(USART2);
-//        (void)FIFO_Put(&Receive_Buffer, data_byte);
-//    }
-//}
-
 /*************************************************************************
  * DESCRIPTION: Return true if a byte is available
  * RETURN:      true if a byte is available, with the byte in the parameter
@@ -141,9 +111,9 @@ bool rs485_byte_available(uint8_t *data_register)
 {
     bool data_available = false; /* return value */
 
-    if (!FIFO_Empty(&Receive_Buffer)) {
+    if (Serial2.available()) {
         if (data_register) {
-            *data_register = FIFO_Get(&Receive_Buffer);
+            *data_register =Serial2.read();
         }
         rs485_silence_reset();
         data_available = true;
@@ -161,7 +131,7 @@ bool rs485_byte_available(uint8_t *data_register)
 void rs485_byte_send(uint8_t tx_byte)
 {
     led_tx_on_interval(10);
-    //USART_SendData(USART2, tx_byte);
+    Serial2.write(tx_byte);
     rs485_silence_reset();
 }
 
@@ -173,7 +143,7 @@ void rs485_byte_send(uint8_t tx_byte)
  **************************************************************************/
 bool rs485_byte_sent(void)
 {
-    return true;//USART_GetFlagStatus(USART2, USART_FLAG_TXE);
+    return true;
 }
 
 /*************************************************************************
@@ -183,7 +153,8 @@ bool rs485_byte_sent(void)
  **************************************************************************/
 bool rs485_frame_sent(void)
 {
-    return true; //USART_GetFlagStatus(USART2, USART_FLAG_TC);
+    Serial2.flush();
+    return true;
 }
 
 /*************************************************************************
@@ -194,24 +165,8 @@ bool rs485_frame_sent(void)
 void rs485_bytes_send(uint8_t *buffer, /* data to send */
     uint16_t nbytes)
 { /* number of bytes of data */
-    uint8_t tx_byte;
-
-    while (nbytes) {
-        /* Send the data byte */
-        tx_byte = *buffer;
-        /* Send one byte */
-        //USART_SendData(USART2, tx_byte);
-        while (!rs485_byte_sent()) {
-            /* do nothing - wait until Tx buffer is empty */
-        }
-        buffer++;
-        nbytes--;
-    }
-    /* was the frame sent? */
-    while (!rs485_frame_sent()) {
-        /* do nothing - wait until the entire frame in the
-           Transmit Shift Register has been shifted out */
-    }
+    Serial2.write(buffer, nbytes);
+    Serial2.flush();
     rs485_silence_reset();
 
     return;
@@ -224,18 +179,7 @@ void rs485_bytes_send(uint8_t *buffer, /* data to send */
  **************************************************************************/
 static void rs485_baud_rate_configure(void)
 {
-//    USART_InitTypeDef USART_InitStructure;
-//
-//    USART_InitStructure.USART_BaudRate = Baud_Rate;
-//    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-//    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-//    USART_InitStructure.USART_Parity = USART_Parity_No;
-//    USART_InitStructure.USART_HardwareFlowControl =
-//        USART_HardwareFlowControl_None;
-//    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-//
-//    /* Configure USARTx */
-//    USART_Init(USART2, &USART_InitStructure);
+    Serial2.begin(Baud_Rate);
 }
 
 /*************************************************************************
@@ -282,11 +226,11 @@ uint32_t rs485_baud_rate(void)
  **************************************************************************/
 void rs485_rts_enable(bool enable)
 {
-    //if (enable) {
-    //    GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
-    //} else {
-    //    GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_RESET);
-    //}
+    if (enable) {
+        digitalWrite(13, HIGH);
+    } else {
+        digitalWrite(13, LOW);
+    }
 }
 
 /*************************************************************************
@@ -296,49 +240,7 @@ void rs485_rts_enable(bool enable)
  **************************************************************************/
 void rs485_init(void)
 {
-//    GPIO_InitTypeDef GPIO_InitStructure;
-//    NVIC_InitTypeDef NVIC_InitStructure;
-//
-//    GPIO_StructInit(&GPIO_InitStructure);
-//    /* Configure USARTx Rx as input floating */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-//    GPIO_Init(GPIOA, &GPIO_InitStructure);
-//    /* Configure USARTx Tx as alternate function push-pull */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-//    GPIO_Init(GPIOA, &GPIO_InitStructure);
-//    /* Configure the Request To Send (RTS) aka Transmit Enable pin */
-//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//    GPIO_Init(GPIOA, &GPIO_InitStructure);
-//    /* Enable USARTx Clock */
-//    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-//    /*RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);*/
-//    /* Enable GPIO Clock */
-//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-//    /* Enable the USART Pins Software Remapping for this pair
-//    of pins and peripheral functions:
-//    USART3 Full remap (TX/PD8, RX/PD9, CK/PD10, CTS/PD11, RTS/PD12) */
-//    /*GPIO_PinRemapConfig(GPIO_FullRemap_USART3, ENABLE);*/
-//    /* Configure the NVIC Preemption Priority Bits */
-//    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
-//    /* Enable the USARTx Interrupt */
-//    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-//    /* enable the USART to generate interrupts */
-//    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-
+    pinMode(13, OUTPUT);
     rs485_baud_rate_set(Baud_Rate);
-
-//    USART_Cmd(USART2, ENABLE);
-
-//    FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-//        (unsigned)sizeof(Receive_Buffer_Data));
     rs485_silence_reset();
 }

@@ -23,27 +23,23 @@
  *
  *************************************************************************/
 
-#include <stdbool.h>
-#include <stdint.h>
-#include "hardware.h"
+#include "Arduino.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/basic/sys/mstimer.h"
-#include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
-#include "FreeRTOS.h"
-#include "task.h"
 
-/* local version override */
-char *BACnet_Version = "1.0";
+struct mstimer Blink_Timer;
 
-void BACnetTask(void *pvParameters)
+void setup()
 {
-    struct mstimer Blink_Timer;
     mstimer_init();
     led_init();
     bacnet_init();
     mstimer_set(&Blink_Timer, 125);
+}
+
+void loop()
+{
     for (;;) {
         if (mstimer_expired(&Blink_Timer)) {
             mstimer_reset(&Blink_Timer);
@@ -53,17 +49,3 @@ void BACnetTask(void *pvParameters)
         bacnet_task();
     }
 }
-
-/* Entry point */
-int main()
-{
-    // Cannot run BACnet code here, the default stack size is to small : 4096
-    // byte
-    xTaskCreate(BACnetTask, /* Function to implement the task */
-        "BACnetTask", /* Name of the task */
-        10000, /* Stack size in words */
-        NULL, /* Task input parameter */
-        20, /* Priority of the task */
-        NULL); /* Task handle. */
-}
-
