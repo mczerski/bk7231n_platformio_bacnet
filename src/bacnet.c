@@ -82,6 +82,21 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Intrinsic Reporting */ }
 };
 
+void binary_output_callback(
+    uint32_t object_instance, BACNET_BINARY_PV old_value,
+    BACNET_BINARY_PV value)
+{
+    if (value == BINARY_ACTIVE) {
+        if (object_instance == 0) {
+            led_ld4_on();
+        }
+    } else {
+        if (object_instance == 0) {
+            led_ld4_off();
+        }
+    }
+}
+
 void bacnet_init(void)
 {
     dlmstp_set_mac_address(1);
@@ -94,6 +109,7 @@ void bacnet_init(void)
     for (int i = 0; i < MAX_BINARY_OUTPUTS; i++) {
         Binary_Output_Create(i);
     }
+    Binary_Output_Write_Present_Value_Callback_Set(binary_output_callback);
 
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
@@ -138,8 +154,6 @@ void bacnet_task(void)
     uint16_t pdu_len;
     BACNET_ADDRESS src; /* source address */
     uint8_t i;
-    BACNET_BINARY_PV binary_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity;
     bool out_of_service;
 
     /* Binary Input */
@@ -155,35 +169,6 @@ void bacnet_task(void)
         }
     }
     /* Binary Output */
-    for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
-        out_of_service = Binary_Output_Out_Of_Service(i);
-        if (!out_of_service) {
-            binary_value = Binary_Output_Present_Value(i);
-            polarity = Binary_Output_Polarity(i);
-            if (polarity != POLARITY_NORMAL) {
-                if (binary_value == BINARY_ACTIVE) {
-                    binary_value = BINARY_INACTIVE;
-                } else {
-                    binary_value = BINARY_ACTIVE;
-                }
-            }
-            if (binary_value == BINARY_ACTIVE) {
-                if (i == 0) {
-                    led_ld4_on();
-                    /* led_on(LED_2); */
-                } else {
-                    /* led_on(LED_3); */
-                }
-            } else {
-                if (i == 0) {
-                    led_ld4_off();
-                    /* led_off(LED_2); */
-                } else {
-                    /* led_off(LED_3); */
-                }
-            }
-        }
-    }
     /* handle the communication timer */
     if (mstimer_expired(&DCC_Timer)) {
         mstimer_reset(&DCC_Timer);
@@ -195,7 +180,9 @@ void bacnet_task(void)
         mstimer_reset(&IN_Timer);
         int curr = led_in1_state();
         if (prev == 0 && curr == 1) {
-            Binary_Output_Present_Value_Set(0, !Binary_Output_Present_Value(0), 16);
+            int old_value = Binary_Output_Present_Value(0);
+            Binary_Output_Present_Value_Set(0, !old_value, 16);
+            binary_output_callback(0, old_value, !old_value); 
         }
         prev = curr;
     }
