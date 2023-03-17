@@ -42,6 +42,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/ai.h"
 /* me */
 #include "bacnet.h"
 
@@ -72,6 +73,13 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Output_Encode_Value_List, Binary_Output_Change_Of_Value,
         Binary_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */ },
+    { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
+        Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
+        Analog_Input_Object_Name, Analog_Input_Read_Property,
+        Analog_Input_Write_Property, Analog_Input_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
+        Analog_Input_Encode_Value_List, Analog_Input_Change_Of_Value,
+        Analog_Input_Change_Of_Value_Clear, Analog_Input_Intrinsic_Reporting },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,

@@ -25,10 +25,14 @@
 
 #include "Arduino.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/object/ai.h"
 #include "led.h"
 #include "bacnet.h"
+#include "BL0942.h"
 
 struct mstimer Blink_Timer;
+struct mstimer BL0942_Timer;
+BL0942 bl0942(Serial1);
 
 void setup()
 {
@@ -36,6 +40,11 @@ void setup()
     led_init();
     bacnet_init();
     mstimer_set(&Blink_Timer, 125);
+    mstimer_set(&BL0942_Timer, 1000);
+    bl0942.begin();
+    Analog_Input_COV_Increment_Set(0, 0.01);
+    Analog_Input_COV_Increment_Set(1, 1);
+    Analog_Input_COV_Increment_Set(2, 0.1);
 }
 
 void loop()
@@ -45,7 +54,15 @@ void loop()
             mstimer_reset(&Blink_Timer);
             led_ld3_toggle();
         }
+        if (mstimer_expired(&BL0942_Timer)) {
+            mstimer_reset(&BL0942_Timer);
+            bl0942.startMeasurement();
+        }
         led_task();
         bacnet_task();
+        bl0942.update();
+        Analog_Input_Present_Value_Set(0, bl0942.getIRms());
+        Analog_Input_Present_Value_Set(1, bl0942.getVRms());
+        Analog_Input_Present_Value_Set(2, bl0942.getPRms());
     }
 }
