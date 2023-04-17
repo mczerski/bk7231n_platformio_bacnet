@@ -35,6 +35,7 @@ static constexpr int LED_RX = 13;
 static constexpr int LED_D3 = 17;
 static constexpr int LED_D4 = 3;
 static constexpr int IN1 = 15;
+static constexpr int IN2 = 2;
 
 /*************************************************************************
  * Description: Activate the LED
@@ -264,8 +265,7 @@ void led_ld3_toggle(void)
  *************************************************************************/
 bool led_in1_state(void)
 {
-    digitalRead(IN1);
-    return gpio_input(GPIO23);
+    return digitalRead(IN1) and digitalRead(IN2);
 }
 
 /*************************************************************************
