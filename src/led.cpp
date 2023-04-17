@@ -30,12 +30,12 @@ static struct mstimer Off_Delay_Timer_Tx;
 static bool Rx_State;
 static bool Tx_State;
 static bool LD3_State;
-static constexpr int LED_TX = 12;
-static constexpr int LED_RX = 13;
-static constexpr int LED_D3 = 17;
-static constexpr int LED_D4 = 3;
-static constexpr int IN1 = 15;
-static constexpr int IN2 = 2;
+static constexpr int LED_TX = 12; //P20
+static constexpr int LED_RX = 13; //P21
+static constexpr int LED_D3 = 17; //P26 (led)
+static constexpr int LED_D4 = 3; //P7 (relay)
+static constexpr int IN1 = 15; //P23 (button)
+static constexpr int IN2 = 2; //P6 (switch)
 
 /*************************************************************************
  * Description: Activate the LED

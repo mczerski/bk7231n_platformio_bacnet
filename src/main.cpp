@@ -29,6 +29,7 @@
 #include "led.h"
 #include "bacnet.h"
 #include "BL0942.h"
+#include "update.h"
 
 struct mstimer Blink_Timer;
 struct mstimer BL0942_Timer;
@@ -39,6 +40,7 @@ void setup()
     mstimer_init();
     led_init();
     bacnet_init();
+    update_init();
     mstimer_set(&Blink_Timer, 125);
     mstimer_set(&BL0942_Timer, 1000);
     bl0942.begin();

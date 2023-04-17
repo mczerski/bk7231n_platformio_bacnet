@@ -35,6 +35,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/service/h_arf.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
@@ -43,6 +44,7 @@
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/bacfile.h"
 /* me */
 #include "bacnet.h"
 
@@ -80,6 +82,11 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Analog_Input_Encode_Value_List, Analog_Input_Change_Of_Value,
         Analog_Input_Change_Of_Value_Clear, Analog_Input_Intrinsic_Reporting },
+    { OBJECT_FILE, bacfile_init, (unsigned (*)())bacfile_count, bacfile_index_to_instance,
+        bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
+        bacfile_write_property, BACfile_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -135,6 +142,10 @@ void bacnet_init(void)
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, handler_atomic_write_file);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
